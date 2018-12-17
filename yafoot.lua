@@ -17,58 +17,57 @@ push_footnotes_below_lines = function (head)
 end
 
 
-
-recur = function (head, page_head, page_tail)
-   for item in node.traverse(head) do
-      if item.id == node.id("vlist")
-      then
-         recur_vlist(item, page_head, page_tail)
-      elseif item.id == node.id("hlist")
-      then
-         recur_hlist(item, page_head, page_tail)
-      end
-   end
-   return true
-end
-
-recur_hlist = function (hlist, page_head, page_tail)
---   texio.write_nl("Found a HLIST!!!")
-
-   if hlist.head
-   then
---[[      
-      if hlist.head.id == node.id("glyph")
-      then 
-         texio.write_nl("Found a GLYPH!!!" .. hlist.head.char)
-      end
---]]
-      recur(hlist.head, page_head, page_tail)
-   end
-   return true
-end
-
-recur_vlist = function (vlist, page_head, page_tail)
---   texio.write_nl("Found a VLIST!!!")
-   local footnotebox = node.has_attribute(vlist, 200)
-   if footnotebox
-   then
-      node.remove(page_head, vlist)
-      node.insert_before(page_head, page_tail, tex.box[footnotebox])
-   else
-      if vlist.head
-      then
-         recur(vlist.head, page_head, page_tail)
-      end
-   end
-   return true
-end
-
-
-let_footnote_bottom = function (head)
+let_footnote_bottom = function (page_head, _, s)
    local vbox = node.copy(tex.box.vfillbox)
-   local tail = head.tail
-   node.insert_after(head, tail, vbox)
+   page_tail = node.slide(page_head)
+   page_head = node.insert_after(page_head, page_tail, vbox)
+   
+   recur = function (head, page_head)
+      for item in node.traverse(head) do
+         if item.id == node.id("vlist")
+         then
+            page_head = recur_vlist(item, page_head)
+         elseif item.id == node.id("hlist")
+         then
+            page_head = recur_hlist(item, page_head)
+         end
+      end
+      return page_head
+   end
 
-   recur (head, head, tail)
-   return true
+   recur_hlist = function (hlist, page_head)
+      if hlist.head
+      then
+         page_head = recur(hlist.head, page_head)
+      end
+      return page_head
+   end
+
+   recur_vlist = function (vlist, page_head)
+      local footnotebox = node.has_attribute(vlist, 200)
+            
+      if footnotebox
+      then
+         --[[
+         if tex.box[footnotebox]
+         then
+            texio.write_nl("Found a Footnote!!!" .. tostring(footnotebox))
+         end
+         --]]
+         
+         page_head = node.remove(page_head, vlist)
+         page_tail = node.slide(page_head)
+
+         page_head = node.insert_before(page_head, page_tail, tex.box[footnotebox])
+      else
+         if vlist.head
+         then
+            page_head = recur(vlist.head, page_head)
+         end
+      end
+      return page_head
+   end
+
+   page_head = recur(page_head, page_head)
+   return page_head
 end
