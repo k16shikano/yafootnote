@@ -4,13 +4,10 @@ push_footnotes_below_lines = function (head)
       if is_footnote
       then
 --         texio.write_nl("Found a Footnote!!!" .. is_footnote)
-         while item do
-            local footnote = node.copy(tex.box[is_footnote])
-            head, new = node.insert_before(head,item,footnote)
-            node.set_attribute(new,200,is_footnote)
-            item = item.next
-         end
-         head = node.remove(head, item)
+         local footnote = node.copy(tex.box[is_footnote])
+         head, new = node.insert_before(head,item,footnote)
+         node.set_attribute(new,200,is_footnote)
+         item = item.next
       end
    end
    return head
