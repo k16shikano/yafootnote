@@ -15,11 +15,64 @@ push_footnotes_below_lines = function (head, group)
    return head
 end
 
+crush_height_of_hlist = function (head, group, size)
+   local acc_height = 0
+   local acc_depth = 0
 
+   recur = function (head)
+      for item in node.traverse(head) do
+         if item.id == node.id("vlist")
+         then
+            local footnotebox = node.has_attribute(item, 200)
+            if footnotebox then
+               footnote_node = node.copy(tex.box[footnotebox])
+               acc_height = acc_height + footnote_node.height
+               acc_depth = acc_depth + footnote_node.depth
+            end
+         end
+         item = item.next
+      end
+   end
+   
+      for hitem in node.traverse_id(node.id("hlist"), head) do
+         if hitem.subtype == 1 or hitem.subtype == 2
+         then
+            for item in node.traverse_id(node.id("vlist"), hitem) do
+               local h = item.height
+               local d = item.depth
+               local f = node.has_attribute(item, 200)
+               if f
+               then
+                  recur(item)
+                  if group == "vbox" or group == "vtop"
+                  then
+                     item.height = tex.sp("0pt")
+                     item.depth = tex.sp("0pt")
+                  elseif group == "split_keep" or group == "split_off"
+                  then
+                     item.height = acc_height - acc_depth
+                     item.depth = acc_depth + tex.sp("10pt")
+                  else
+                     item.height = h
+                     item.depth = d
+                  end
+                  
+                  acc_height = 0
+                  acc_depth = 0
+               end
+            item = item.next 
+            end
+         end
+         hitem = hitem.next 
+      end
+   
+   return head
+end
 
-let_footnote_bottom = function (page_head, group, s)
+move_footnote_bottom = function (page_head, group, s)
    local vbox = node.copy(tex.box.vfillbox)
    local acc_depth = 0
+   local acc_height = 0
    page_tail = node.slide(page_head)
    page_head = node.insert_after(page_head, page_tail, vbox)
    
@@ -49,13 +102,6 @@ let_footnote_bottom = function (page_head, group, s)
          page_head = node.remove(page_head, vlist)
          page_tail = node.slide(page_head)
          
-         -- if the vlist is under a hlist, the height should be decreased from the hlist,
-         -- in order to prevent the hlist from stretching to the bottom.
-         if under_hlist
-         then
-            acc_depth = acc_depth + footnote_node.depth
-         end
-
          page_head, new = node.insert_after(page_head, page_tail, footnote_node)
       else
          if vlist.head
@@ -68,26 +114,6 @@ let_footnote_bottom = function (page_head, group, s)
 
    page_head = recur(page_head, false, page_head)
 
-   -- decrease the height of hlist when necessarly.
-   for hitem in node.traverse_id(node.id("hlist"), page_head) do
-      if hitem.subtype == 1 -- or hitem.subtype == 2
-      then
-         local skip = tex.splittopskip
-         hitem.depth = hitem.depth - acc_depth
-         acc_depth = 0
-      end
---[[
-         local tempbox = node.copy(tex.box.tempbox)
-         for glue in node.traverse_id(node.id("hlist"), hitem) do
-            if hitem.subtype == 2
-            then
-               node.remove(hitem, glue) --hitem.depth - acc_depth
-            end
-         end
---]]
-      
-   end
-
-
    return page_head
 end
+

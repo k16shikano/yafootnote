@@ -43,9 +43,12 @@
 
 \directlua{%
     luatexbase.add_to_callback
-      ("pre_output_filter",let_footnote_bottom,"crushbox")}
+      ("pre_output_filter",move_footnote_bottom,"moveftn")}
 
-  
+\directlua{%
+    luatexbase.add_to_callback
+      ("vpack_filter",crush_height_of_hlist,"crushhbox")}
+
 \begin{document}
 
 \newbox\vfillbox \setbox\vfillbox=\vtop{\hbox{\mbox{}}\vfill\noindent\hbox{\vrule height.4pt width.4\footnotewidth}}
