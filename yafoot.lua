@@ -1,5 +1,4 @@
 push_footnotes_below_lines = function (head, group)
---   texio.write_nl("Found a Footnote!!!" .. tostring(group))
    for item in node.traverse_id(node.id("whatsit"), head) do
       local is_footnote = node.has_attribute(item, 100)
       if is_footnote
