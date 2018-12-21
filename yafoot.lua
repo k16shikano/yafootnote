@@ -9,6 +9,7 @@ push_footnotes_below_lines = function (head, group)
          node.set_attribute(new, 200, is_footnote)
 
          item = item.next
+         new.width = 0
       end
    end
    return head

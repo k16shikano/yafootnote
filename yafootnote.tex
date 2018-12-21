@@ -4,7 +4,9 @@
 \usepackage[no-math]{luatexja-fontspec}
 \usepackage{luacode,luatexbase}
 \usepackage[skins, breakable]{tcolorbox}
+\usepackage{mdframed}
 %\usepackage[callback={preout}]{nodetree}
+
 
 \setmainjfont[BoldFont=IPAexGothic]{IPAexMincho}
 \setsansjfont{IPAexGothic}
@@ -12,6 +14,10 @@
 \protected\def\pdfliteral{\pdfextension literal}
 
 \newcount\yafootnotecount
+\newdimen\footnotewidth
+\footnotewidth=\textwidth
+\newdimen\paryafootnoteskip
+\paryafootnoteskip=.1\baselineskip
 
 \def\yafootnote#1{%
   \global\advance\yafootnotecount 1
@@ -19,8 +25,8 @@
     \csname yafoot_\the\yafootnotecount\endcsname
   \global\expandafter\setbox
     \csname yafoot_\the\yafootnotecount\endcsname=
-    \vtop{\hsize\textwidth
-      \footnotesize\noindent #1}%
+    \vtop{\hsize\footnotewidth\par\hbox{\vrule width0pt height4pt}
+      \footnotesize\narrowbaselines\noindent *\the\yafootnotecount\, #1}%
   \bgroup
     \attribute100=\expandafter\the
       \csname yafoot_\the\yafootnotecount\endcsname
@@ -29,8 +35,7 @@
   \egroup
 }
 
-\newbox\vfillbox \setbox\vfillbox=\vbox{\vfill}
-\def\yafootnotemark#1{\ensuremath{^{\mbox{#1}}}}
+\def\yafootnotemark#1{\inhibitglue\small *\ensuremath{^{\mbox{#1}}}}
 
 \directlua{%
     luatexbase.add_to_callback
@@ -43,6 +48,14 @@
   
 \begin{document}
 
+\newbox\vfillbox \setbox\vfillbox=\vtop{\hbox{\mbox{}}\vfill\noindent\hbox{\vrule height.4pt width.4\footnotewidth}}
+\newbox\parfootnotebox \setbox\parfootnotebox=\vbox{\hrule}
+\newbox\tempbox \setbox\tempbox=\vbox{\hbox{hoge}}
+
+吾輩は猫である\yafootnote{名前は\\ まだ\\ 無い}。
+
+
+%\directlua{}
 \begin{tcolorbox}[enhanced jigsaw, breakable]
 吾輩は猫である\yafootnote{ねこ}。名前はまだ無い。
 
