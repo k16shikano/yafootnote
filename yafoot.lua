@@ -70,10 +70,8 @@ end
 
 move_footnote_bottom = function (page_head, group, s)
    local vbox = node.copy(tex.box.vfillbox)
-   local acc_depth = 0
-   local acc_height = 0
-   page_tail = node.slide(page_head)
-   page_head = node.insert_after(page_head, page_tail, vbox)
+   local footins = node.new("vlist")
+   footins.list, new = node.insert_before(footins.list, footins.list, node.copy(tex.box.footins))
    
    recur = function (head, under_hlist, page_head)
       for item in node.traverse(head) do
@@ -97,11 +95,13 @@ move_footnote_bottom = function (page_head, group, s)
       local footnotebox = node.has_attribute(vlist, 200)
 
       if footnotebox then
-         footnote_node = node.copy(tex.box[footnotebox])
+         footnote = node.copy(tex.box[footnotebox])
          page_head = node.remove(page_head, vlist)
-         page_tail = node.slide(page_head)
-         
-         page_head, new = node.insert_after(page_head, page_tail, footnote_node)
+         if footins
+         then
+            footins.list, new = node.insert_after(footins.list, footins.list, footnote)
+            texio.write_nl("FOOTINS " .. tostring(footins.list))
+         end         
       else
          if vlist.head
          then
@@ -112,7 +112,10 @@ move_footnote_bottom = function (page_head, group, s)
    end
 
    page_head = recur(page_head, false, page_head)
-
+   if footins.list
+   then
+      tex.box.footins = node.copy(node.vpack(footins.list))
+   end
    return page_head
 end
 
