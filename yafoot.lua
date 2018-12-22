@@ -45,21 +45,20 @@ crush_height_of_hlist = function (head, group, size)
                   recur(item)
                   if group == "vbox" or group == "vtop"
                   then
-                     item.height = tex.sp("0pt")
-                     item.depth = tex.sp("0pt")
+                     item.height = h -- acc_height
+                     item.depth = d -- acc_depth
                   elseif group == "split_keep" or group == "split_off"
                   then
-                     item.height = acc_height - acc_depth
-                     item.depth = acc_depth + tex.sp("10pt")
+                     item.height = 0
+                     item.depth = 0
                   else
-                     item.height = h
-                     item.depth = d
+                     item.height = h -- acc_height
+                     item.depth = d -- acc_depth
                   end
-                  
-                  acc_height = 0
-                  acc_depth = 0
                end
-            item = item.next 
+               acc_height = 0
+               acc_depth = 0
+               item = item.next 
             end
          end
          hitem = hitem.next 
@@ -69,7 +68,6 @@ crush_height_of_hlist = function (head, group, size)
 end
 
 move_footnote_bottom = function (page_head, group, s)
-   local vbox = node.copy(tex.box.vfillbox)
    local footins = node.new("vlist")
    footins.list, new = node.insert_before(footins.list, footins.list, node.copy(tex.box.footins))
    
