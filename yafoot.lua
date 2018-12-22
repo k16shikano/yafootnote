@@ -99,7 +99,7 @@ move_footnote_bottom = function (page_head, group, s)
          page_head = node.remove(page_head, vlist)
          if footins
          then
-            footins.list, new = node.insert_after(footins.list, footins.list, footnote)
+            footins.list, new = node.insert_after(footins.list, footins.tail, footnote)
             texio.write_nl("FOOTINS " .. tostring(footins.list))
          end         
       else
