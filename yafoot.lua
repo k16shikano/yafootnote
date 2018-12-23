@@ -18,51 +18,103 @@ crush_height_of_hlist = function (head, group, size)
    local acc_height = 0
    local acc_depth = 0
 
-   recur = function (head)
+   recur = function (head, list_head)
+      acc_height = 0
+      acc_depth = 0
       for item in node.traverse(head) do
          if item.id == node.id("vlist")
          then
-            local footnotebox = node.has_attribute(item, 200)
-            if footnotebox then
-               footnote_node = node.copy(tex.box[footnotebox])
-               acc_height = acc_height + footnote_node.height
-               acc_depth = acc_depth + footnote_node.depth
-            end
+            list_head = recur_vlist(item, list_head)
+         elseif item.id == node.id("hlist")
+         then
+            list_head = recur_hlist(item, list_head)
          end
-         item = item.next
       end
+      return list_head
+   end
+
+   recur_hlist = function (hlist, list_head)
+      list_head = recur(hlist.head, list_head)
+      return list_head
+   end
+
+   recur_vlist = function (vlist, list_head)
+      local footnotebox = node.has_attribute(vlist, 200)
+
+      if footnotebox then
+         footnote_node = node.copy(tex.box[footnotebox])
+         acc_height = acc_height + footnote_node.height
+         acc_depth = acc_depth + footnote_node.depth
+
+         vlist.height = vlist.height - acc_height
+         vlist.depth = acc_depth
+--         node.set_attribute(vlist, 300, 1)
+         acc_height = 0 -- acc_height - vlist.height
+         acc_depth = 0 -- acc_depth - vlist.depth
+      else
+         if vlist.head
+         then
+            acc_height = 0 -- acc_height - vlist.height
+            acc_depth = 0 -- acc_depth - vlist.depth
+            list_head = recur(vlist.head, list_head)
+         end
+      end
+      acc_height = 0 -- acc_height - vlist.height
+      acc_depth = 0 -- acc_depth - vlist.depth
+      return list_head
+   end
+
+   recur(head, head)
+
+--[[
+   recur_acc = function (head, list_head)
+      for item in node.traverse(head) do
+         if item.id == node.id("vlist")
+         then
+            list_head = recur_acc_vlist(item, list_head)
+         elseif item.id == node.id("hlist")
+         then
+            list_head = recur_acc_hlist(item, list_head)
+         end
+      end
+      return list_head
+   end
+
+   recur_acc_hlist = function (hlist, list_head)
+      list_head = recur_acc(hlist.head, list_head)
+      return list_head
+   end
+
+   recur_acc_vlist = function (vlist, list_head)
+      local footnotebox = node.has_attribute(vlist, 200)
+
+      if footnotebox then
+         footnote_node = node.copy(tex.box[footnotebox])
+         acc_height = acc_height + footnote_node.height
+         acc_depth = acc_depth + footnote_node.depth
+      else
+         if vlist.head
+         then
+            list_head = recur_acc(vlist.head, list_head)
+         end
+      end
+      return list_head
    end
    
-      for hitem in node.traverse_id(node.id("hlist"), head) do
-         if hitem.subtype == 1 or hitem.subtype == 2
+   for vitem in node.traverse_id(node.id("vlist"), head) do
+      if node.has_attribute(vitem, 200)
+      then
+         if not node.has_attribute(vitem, 300)
          then
-            for item in node.traverse_id(node.id("vlist"), hitem) do
-               local h = item.height
-               local d = item.depth
-               local f = node.has_attribute(item, 200)
-               if f
-               then
-                  recur(item)
-                  if group == "vbox" or group == "vtop"
-                  then
-                     item.height = h -- acc_height
-                     item.depth = d -- acc_depth
-                  elseif group == "split_keep" or group == "split_off"
-                  then
-                     item.height = 0
-                     item.depth = 0
-                  else
-                     item.height = h -- acc_height
-                     item.depth = d -- acc_depth
-                  end
-               end
-               acc_height = 0
-               acc_depth = 0
-               item = item.next 
-            end
+            recur_acc(vitem, head)
+            vitem.height = vitem.height - acc_height
+            vitem.depth = acc_depth
+            acc_height = 0
+            acc_depth = 0
          end
-         hitem = hitem.next 
       end
+   end
+--]]
    
    return head
 end
@@ -98,7 +150,6 @@ move_footnote_bottom = function (page_head, group, s)
          if footins
          then
             footins.list, new = node.insert_after(footins.list, footins.tail, footnote)
-            texio.write_nl("FOOTINS " .. tostring(footins.list))
          end         
       else
          if vlist.head
