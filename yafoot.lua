@@ -37,8 +37,9 @@ crush_height_of_hlist = function (head, group, size)
          then
             acc_h = acc_h + tex.box[f].height
          end
+         -- gather height of footnotes, then shift the depth of hlist upword with the height
+         -- hlist.height = hlist.height
          hlist.depth = acc_h - hlist.depth
-         hlist.height = hlist.height
       end
       list_head = recur(hlist.head, list_head)
       return list_head
@@ -48,6 +49,9 @@ crush_height_of_hlist = function (head, group, size)
       local f = node.has_attribute(vlist, 200)
       if f
       then
+         -- need to shift the page bottom upword to make a room for footins.
+         -- this code is still wrong, though... 
+         local h = vlist.height
          vlist.depth = vlist.height + tex.box[f].height + tex.box[f].depth
          vlist.height = vlist.height - tex.box[f].height
       else
