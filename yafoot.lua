@@ -32,34 +32,30 @@ crush_height_of_hlist = function (head, group, size)
    recur_hlist = function (hlist, list_head)
       for item in node.traverse_id(node.id("vlist"), hlist) do
          local f = node.has_attribute(item, 200)
+         local acc_h = 0
          if f
          then
-            item.height = 0 
-            item.depth = 0
+            acc_h = acc_h + tex.box[f].height
          end
-         list_head = recur(hlist.head, list_head)
+         hlist.depth = acc_h - hlist.depth
+         hlist.height = hlist.height
       end
-
+      list_head = recur(hlist.head, list_head)
       return list_head
    end
 
    recur_vlist = function (vlist, list_head)
-      local acc_h = 0
-      for item in node.traverse_id(node.id("vlist"), vlist) do
-         local f = node.has_attribute(vlist, 200)
-         if f
-         then
-            acc_h = acc_h + item.height + tex.box[f].height
+      local f = node.has_attribute(vlist, 200)
+      if f
+      then
+         vlist.depth = vlist.height + tex.box[f].height + tex.box[f].depth
+         vlist.height = vlist.height - tex.box[f].height
+      else
+         if vlist.head
+         then 
+            list_head = recur(vlist.head, list_head)
          end
       end
-      vlist.height = vlist.height + acc_h
-      vlist.depth = vlist.depth + acc_h
-
-      if vlist.head
-      then 
-         list_head = recur(vlist.head, list_head)
-      end
-      
       return list_head
    end
 
