@@ -34,7 +34,7 @@ crush_height_of_hlist = function (head, group, size)
          local f = node.has_attribute(item, 200)
          if f
          then
-            item.height = 0
+            item.height = 0 
             item.depth = 0
          end
          list_head = recur(hlist.head, list_head)
@@ -53,7 +53,8 @@ crush_height_of_hlist = function (head, group, size)
          end
       end
       vlist.height = vlist.height + acc_h
-      
+      vlist.depth = vlist.depth + acc_h
+
       if vlist.head
       then 
          list_head = recur(vlist.head, list_head)
@@ -107,7 +108,7 @@ move_footnote_bottom = function (page_head, group, s)
       end
       return page_head
    end
-
+   
    page_head = recur(page_head, false, page_head)
    if footins.list
    then
