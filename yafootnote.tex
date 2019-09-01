@@ -35,6 +35,12 @@
   \egroup
 }
 
+\newinsert \yaftnins
+\global\dimen\yaftnins \maxdimen
+\global\count\yaftnins 1000
+
+
+
 \def\yafootnotemark#1{\inhibitglue\small *\ensuremath{^{\mbox{#1}}}}
 
 \directlua{%
@@ -47,7 +53,8 @@
 
 \directlua{%
     luatexbase.add_to_callback
-      ("vpack_filter",crush_height_of_hlist,"crushhbox")}
+      ("vpack_filter",crush_height_of_vlist,"crushhbox")}
+
 
 \begin{document}
 

@@ -4,7 +4,7 @@ push_footnotes_below_lines = function (head, group)
       if is_footnote
       then
          local footnote = node.copy(tex.box[is_footnote])
-         head, new = node.insert_after(head, item, footnote)         
+         head, new = node.insert_after(head, item, footnote)
          node.set_attribute(new, 200, is_footnote)
 
          item = item.next
@@ -14,51 +14,31 @@ push_footnotes_below_lines = function (head, group)
    return head
 end
 
-crush_height_of_hlist = function (head, group, size)
+crush_height_of_vlist = function (head, group, size)
 
    recur = function (head, list_head)
       for item in node.traverse(head) do
-         if item.id == node.id("vlist")
-         then
-            list_head = recur_vlist(item, list_head)
-         elseif item.id == node.id("hlist")
-         then
-            list_head = recur_hlist(item, list_head)
-         end
+         list_head = recur_vlist(item, head)
       end
-      return list_head
-   end
-
-   recur_hlist = function (hlist, list_head)
-      for item in node.traverse_id(node.id("vlist"), hlist) do
-         local f = node.has_attribute(item, 200)
-         local acc_h = 0
-         if f
-         then
-            acc_h = acc_h + tex.box[f].height
-         end
-         -- gather height of footnotes, then shift the depth of hlist upword with the height
-         -- hlist.height = hlist.height
-         hlist.depth = acc_h - hlist.depth
-      end
-      list_head = recur(hlist.head, list_head)
       return list_head
    end
 
    recur_vlist = function (vlist, list_head)
+      local h = vlist.height
+      local d = vlist.depth
+      local ld = tex.sp("2pt")
+      
       local f = node.has_attribute(vlist, 200)
       if f
       then
-         -- need to shift the page bottom upword to make a room for footins.
-         -- this code is still wrong, though... 
-         local h = vlist.height
-         vlist.depth = vlist.height + tex.box[f].height + tex.box[f].depth
-         vlist.height = vlist.height - tex.box[f].height
-      else
-         if vlist.head
-         then 
-            list_head = recur(vlist.head, list_head)
-         end
+      -- need to shift the page bottom upword to make a room for footins.
+      -- this code is still wrong, though... 
+        vlist.height = tex.box[f].height + tex.box[f].depth
+        vlist.depth = d - h + ld
+      end
+      if vlist.head
+      then
+         list_head = recur(vlist.head, list_head)
       end
       return list_head
    end
@@ -69,8 +49,8 @@ crush_height_of_hlist = function (head, group, size)
 end
 
 move_footnote_bottom = function (page_head, group, s)
-   local footins = node.new("vlist")
-   footins.list, new = node.insert_before(footins.list, footins.list, node.copy(tex.box.footins))
+   local yaftnins = node.new("vlist")
+   yaftnins.list, new = node.insert_before(yaftnins.list, yaftnins.list, node.copy(tex.box.yaftnins))
    
    recur = function (head, under_hlist, page_head)
       for item in node.traverse(head) do
@@ -96,10 +76,10 @@ move_footnote_bottom = function (page_head, group, s)
       if footnotebox then
          footnote = node.copy(tex.box[footnotebox])
          page_head = node.remove(page_head, vlist)
-         if footins
+         if yaftnins
          then
-            footins.list, new = node.insert_after(footins.list, footins.tail, footnote)
-         end         
+            yaftnins.list, new = node.insert_after(yaftnins.list, yaftnins.tail, footnote)
+         end
       else
          if vlist.head
          then
@@ -110,9 +90,9 @@ move_footnote_bottom = function (page_head, group, s)
    end
    
    page_head = recur(page_head, false, page_head)
-   if footins.list
+   if yaftnins.list
    then
-      tex.box.footins = node.copy(node.vpack(footins.list))
+      tex.box.footins = node.copy(node.vpack(yaftnins.list))
    end
 
    return page_head
