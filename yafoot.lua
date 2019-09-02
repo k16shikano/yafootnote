@@ -14,37 +14,31 @@ push_footnotes_below_lines = function (head, group)
    return head
 end
 
+crush_height_of_hlist = function (head, bgroup) 
+   for item in node.traverse_id(node.id("vlist"), head) do
+   end
+   return head
+end
+
+-- crush vlist under hlist
 crush_height_of_vlist = function (head, group, size)
-
-   recur = function (head, list_head)
-      for item in node.traverse(head) do
-         list_head = recur_vlist(item, head)
-      end
-      return list_head
-   end
-
-   recur_vlist = function (vlist, list_head)
-      local h = vlist.height
-      local d = vlist.depth
-      local ld = tex.sp("2pt")
+   for hlist in node.traverse_id(node.id("hlist"), head) do
+      local h = hlist.height
+      local d = hlist.depth
       
-      local f = node.has_attribute(vlist, 200)
-      if f
-      then
-      -- need to shift the page bottom upword to make a room for footins.
-      -- this code is still wrong, though... 
-        vlist.height = tex.box[f].height + tex.box[f].depth
-        vlist.depth = d - h + ld
+      for item in node.traverse_id(node.id("vlist"), hlist) do
+         local f = node.has_attribute(item, 200)
+         
+         if f
+         then
+         -- need to shift the page bottom upword to make a room for footins.
+         -- this code is still wrong, though... 
+            item.height = h - tex.box[f].height
+            item.depth = d - tex.box[f].depth
+            node.set_attribute(item, 300, item.height)
+         end
       end
-      if vlist.head
-      then
-         list_head = recur(vlist.head, list_head)
-      end
-      return list_head
    end
-
-   recur(head, head)
-
    return head
 end
 
@@ -66,30 +60,38 @@ move_footnote_bottom = function (page_head, group, s)
    end
 
    recur_hlist = function (hlist, page_head)
-      page_head = recur(hlist.head, true, page_head)
-      return page_head
+      for vlist in node.traverse_id("vlist", hlist) do
+         page_head = recur(hlist.head, vlist, page_head)
+      end
+      return page_head      
    end
 
-   recur_vlist = function (vlist, under_hlist, page_head)
-      local footnotebox = node.has_attribute(vlist, 200)
-
-      if footnotebox then
-         footnote = node.copy(tex.box[footnotebox])
-         page_head = node.remove(page_head, vlist)
-         if yaftnins
-         then
-            yaftnins.list, new = node.insert_after(yaftnins.list, yaftnins.tail, footnote)
-         end
-      else
-         if vlist.head
-         then
-            page_head = recur(vlist.head, under_hlist, page_head)
+   recur_vlist = function (head, under_hlist, page_head)
+      for vlist in node.traverse(head) do
+         local footnotebox = node.has_attribute(vlist, 200)
+         
+         if footnotebox then
+            if node.has_attribute(vlist, 300)
+            then
+               print("HOGE")
+            end
+            footnote = node.copy(tex.box[footnotebox])
+            page_head = node.remove(page_head, vlist)
+            if yaftnins
+            then
+               yaftnins.list, new = node.insert_after(yaftnins.list, yaftnins.tail, footnote)
+            end
+         else
+            if vlist.head
+            then
+               page_head = recur(vlist.head, under_hlist, page_head)
+            end
          end
       end
       return page_head
    end
    
-   page_head = recur(page_head, false, page_head)
+   page_head = recur(page_head, nil, page_head)
    if yaftnins.list
    then
       tex.box.footins = node.copy(node.vpack(yaftnins.list))

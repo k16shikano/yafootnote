@@ -53,8 +53,11 @@
 
 \directlua{%
     luatexbase.add_to_callback
-      ("vpack_filter",crush_height_of_vlist,"crushhbox")}
+      ("vpack_filter",crush_height_of_vlist,"crushvbox")}
 
+\directlua{%
+    luatexbase.add_to_callback
+      ("hpack_filter",crush_height_of_hlist,"crushhbox")}
 
 \begin{document}
 
