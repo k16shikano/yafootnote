@@ -105,3 +105,15 @@ move_footnote_bottom = function (page_head, group, s)
    return page_head
 end
 
+function buildpage_info(groupcode)
+   lastnode = tex.lists.contrib_head
+   if lastnode
+      then
+      temp = node.tail(lastnode)
+      if temp and temp.id == node.id("hlist")
+      then
+         print("\nMoving page contents at height = "..temp.height.."sp")
+      end
+   end
+end
+

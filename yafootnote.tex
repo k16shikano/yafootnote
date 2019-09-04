@@ -57,7 +57,8 @@
 
 \directlua{%
     luatexbase.add_to_callback
-      ("hpack_filter",crush_height_of_hlist,"crushhbox")}
+      ("buildpage_filter",buildpage_info,"truncatepage")}
+
 
 \begin{document}
 
