@@ -22,20 +22,29 @@ end
 
 -- crush vlist under hlist
 crush_height_of_vlist = function (head, group, size)
-   for hlist in node.traverse_id(node.id("hlist"), head) do
-      local h = hlist.height
-      local d = hlist.depth
-      
-      for item in node.traverse_id(node.id("vlist"), hlist) do
-         local f = node.has_attribute(item, 200)
+   for list in node.traverse(head) do
+      if list.id == node.id("vlist") or list.id == node.id("hlist") or list.id == node.id("rule")
+      then
+         local h = list.height
+         local d = list.depth
          
-         if f
-         then
-         -- need to shift the page bottom upword to make a room for footins.
-         -- this code is still wrong, though... 
-            item.height = h - tex.box[f].height
-            item.depth = d - tex.box[f].depth
-            node.set_attribute(item, 300, item.height)
+         for item in node.traverse(list) do
+            local f = node.has_attribute(item, 200)
+            
+            if f
+            then
+               if not node.has_attribute(item, 300)
+               then
+                  -- need to shift the page bottom upword to make a room for footins.
+                  -- this code is still wrong, though... 
+                  node.set_attribute(item, 300, item.height)
+                  item.height = h-item.height
+                  item.depth = d-item.depth
+               else
+                  item.height = 0
+                  item.depth = 0
+               end
+            end
          end
       end
    end
@@ -63,7 +72,7 @@ move_footnote_bottom = function (page_head, group, s)
       for vlist in node.traverse_id("vlist", hlist) do
          page_head = recur(hlist.head, vlist, page_head)
       end
-      return page_head      
+      return page_head
    end
 
    recur_vlist = function (head, under_hlist, page_head)
@@ -71,10 +80,6 @@ move_footnote_bottom = function (page_head, group, s)
          local footnotebox = node.has_attribute(vlist, 200)
          
          if footnotebox then
-            if node.has_attribute(vlist, 300)
-            then
-               print("HOGE")
-            end
             footnote = node.copy(tex.box[footnotebox])
             page_head = node.remove(page_head, vlist)
             if yaftnins
