@@ -28,7 +28,7 @@
   \global\expandafter\newbox
     \csname yafoot_\the\yafootnotecount\endcsname
   \global\expandafter\setbox
-    \csname yafoot_\the\yafootnotecount\endcsname=
+    \csname yafoot_\the\yafootnotecount\endcsname
     \vtop{\hsize\footnotewidth\par\hbox{\vrule width0pt height4pt}
       \footnotesize\noindent *\the\yafootnotecount\, #1}%
   \bgroup
@@ -103,7 +103,9 @@
 
 \jalipsum[1-5]{wagahai}
 
+\begin{tcolorbox}[breakable]
 foo \\ bar\yafootnote{fuga} \\ baz
+\end{tcolorbox}
 
 \jalipsum[1-5]{wagahai}
 
