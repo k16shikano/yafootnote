@@ -43,6 +43,11 @@ crush_height_of_vlist = function (head, group, size)
             if not node.has_attribute(item, 300)
             then
                node.set_attribute(item, 300, item.height+item.depth)
+               if pages_ftn_ht[1] and pages_ftn_ht[1][1] == 0 and pagenumber == 0 
+               then
+                  print(pages_ftn_ht[1][2])
+                  tex.setdimen("global", "my@tcb@ftn@height", tonumber(pages_ftn_ht[1][2]))
+               end
                item.height = 0
                item.depth = 0
             else
@@ -59,7 +64,6 @@ move_footnote_bottom = function (page_head, group, s)
    local yaftnins = node.new("vlist")
    void = node.new("vlist")
    yaftnins.list, new = node.insert_before(yaftnins.list, yaftnins.list, node.copy(tex.box.footins))
-   local yaftnins_ht = 0
    
    recur = function (head, isftn, page_head)
       for item in node.traverse(head) do
