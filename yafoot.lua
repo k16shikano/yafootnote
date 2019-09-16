@@ -127,10 +127,10 @@ function page_ftn_height(groupcode)
       pagenumber = pagenumber+1
       if has_pages_ftn_ht
       then
-         for i,l in ipairs(pages_ftn_ht) do
-            if tonumber(l[1]) == pagenumber
+         for _,l in ipairs(pages_ftn_ht) do
+            if l[1] == pagenumber
             then
-               tex.setdimen("global", "my@tcb@ftn@height", tonumber(l[2]))
+               tex.setdimen("global", "my@tcb@ftn@height", l[2])
             end
          end
       end
@@ -139,10 +139,30 @@ function page_ftn_height(groupcode)
       ftn_ht = get_ftnheight(tex.lists.contrib_head)
       if ftn_ht > 0
       then
-         tex.setdimen("global", "my@tcb@ftn@height", ftn_ht + tex.getdimen("footskip"))
-         file = io.open(tex.jobname..".fht", "a")
+         local new_ftn_ht = ftn_ht + tex.getdimen("footskip")
+
+         file = io.open(tex.jobname..".fht", "r")
+         io.input(file)
+         curr_page_ftn_arr = {}
+         for line in file:lines() do
+            local curr_line_arr = {}
+            for i in string.gmatch(line, "%S+") do
+               table.insert(curr_line_arr, tonumber(i))
+            end
+            if curr_line_arr[1] == pagenumber 
+            then
+               new_ftn_ht = new_ftn_ht + curr_line_arr[2]
+            else
+               table.insert(curr_page_ftn_arr, line)
+            end
+         end
+         io.close(file)
+         table.insert(curr_page_ftn_arr, pagenumber.." "..new_ftn_ht)
+         local table_string = table.concat(curr_page_ftn_arr, "\n")
+
+         file = io.open(tex.jobname..".fht", "w")
          io.output(file)
-         io.write(pagenumber.." "..ftn_ht + tex.getdimen("footskip").."\n")
+         io.write(table_string)
          io.close(file)
       end
    end
@@ -155,6 +175,9 @@ get_ftnheight = function (n)
       then
          ftnheight = ftnheight + node.get_attribute(list, 300)
          node.unset_attribute(list, 300)
+      elseif node.has_attribute(list, 200)
+      then
+--         ftnheight = ftnheight + list.height + list.depth
       elseif list.head
       then
          ftnheight = ftnheight + get_ftnheight (list.head)
