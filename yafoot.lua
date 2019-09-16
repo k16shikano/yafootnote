@@ -62,33 +62,32 @@ end
 
 move_footnote_bottom = function (page_head, group, s)
    local yaftnins = node.new("vlist")
-   void = node.new("vlist")
-   yaftnins.list, new = node.insert_before(yaftnins.list, yaftnins.list, node.copy(tex.box.footins))
+   yaftnins.list = node.copy(tex.box.footins)
    
-   recur = function (head, isftn, page_head)
+   recur = function (head, page_head)
       for item in node.traverse(head) do
          if item.id == node.id("vlist")
          then
-            page_head = recur_vlist(item, isftn, page_head)
+            page_head = recur_vlist(item, page_head)
          elseif item.id == node.id("hlist")
          then
-            page_head = recur_hlist(item, isftn, page_head)
+            page_head = recur_hlist(item, page_head)
          end
       end
       return page_head
    end
 
-   recur_hlist = function (hlist, isftn, page_head)
+   recur_hlist = function (hlist, page_head)
       for item in node.traverse(hlist.head) do
          if item.id == node.id("hlist") or item.id == node.id("vlist")
          then
-            page_head = recur(item, isftn, page_head)
+            page_head = recur(item, page_head)
          end
       end
       return page_head
    end
 
-   recur_vlist = function (head, isftn, page_head)
+   recur_vlist = function (head, page_head)
       for vlist in node.traverse_id(node.id("vlist"), head) do
          local footnotebox = node.has_attribute(vlist, 200)
          
@@ -99,18 +98,18 @@ move_footnote_bottom = function (page_head, group, s)
             then
                yaftnins.list, new = node.insert_after(yaftnins.list, yaftnins.tail, footnote)
             end
-            page_head = recur(vlist.head, true, page_head)
+            page_head = recur(vlist.head, page_head)
          else
             if vlist.head
             then
-               page_head = recur(vlist.head, isftn, page_head)
+               page_head = recur(vlist.head, page_head)
             end
          end
       end
       return page_head
    end
    
-   recur(page_head, false, page_head)
+   recur(page_head, page_head)
 
    local split_top
    if yaftnins.list
