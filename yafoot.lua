@@ -16,6 +16,11 @@ io.close(file)
 local file = io.open(tex.jobname..".fht", "w")
 io.close(file)
 
+if pages_ftn_ht[1] and pages_ftn_ht[1][1] == 0
+then
+   tex.setdimen("global", "my@tcb@ftn@height", pages_ftn_ht[1][2])
+end
+
 push_footnotes_below_lines = function (head, group)
    for item in node.traverse_id(node.id("whatsit"), head) do
       local is_footnote = node.has_attribute(item, 100)
@@ -43,11 +48,6 @@ crush_height_of_vlist = function (head, group, size)
             if not node.has_attribute(item, 300)
             then
                node.set_attribute(item, 300, item.height+item.depth)
-               if pages_ftn_ht[1] and pages_ftn_ht[1][1] == 0 and pagenumber == 0 
-               then
-                  print(pages_ftn_ht[1][2])
-                  tex.setdimen("global", "my@tcb@ftn@height", tonumber(pages_ftn_ht[1][2]))
-               end
                item.height = 0
                item.depth = 0
             else
