@@ -1,5 +1,3 @@
-\directlua{dofile("./yafoot.lua")}
-
 \documentclass[a4paper]{ltjsarticle}
 \usepackage[no-math]{luatexja-fontspec}
 \usepackage{luacode,luatexbase}
@@ -41,6 +39,8 @@
 
 \def\yafootnotemark#1{\small *\ensuremath{^{\mbox{#1}}}}
 
+\directlua{dofile("./yafoot.lua")}
+
 \directlua{%
     luatexbase.add_to_callback
       ("post_linebreak_filter",push_footnotes_below_lines,"pushftn")}
@@ -59,10 +59,23 @@
 
 % from tcolorbox/tcbbreakable.code.tex
 \def\tcb@vsplit@upper{%
-  \tcbdimto\tcb@split@dim{\tcb@split@dim-\my@tcb@ftn@height}
+  \tcbdimto\tcb@split@dim{\tcb@split@dim-\my@tcb@ftn@height}\global\my@tcb@ftn@height\z@
   \setbox\tcb@upperbox=\vsplit\tcb@totalupperbox to\tcb@split@dim%
   \edef\tcb@upper@box@badness{\the\badness}%
   }
+
+\def\my@tcb@output{%
+  \ifdim\my@tcb@ftn@height>\z@
+    \@tempdima\vsize
+    \advance\@tempdima-\my@tcb@ftn@height
+    \setbox\z@\vsplit\@cclv to \@tempdima%
+    \ifvoid\@cclv\else\setbox\tw@ =\vbox{\copy\@cclv}\unvbox\tw@\fi%
+    \global\my@tcb@ftn@height\z@
+    \setbox\@cclv=\vbox{\copy\z@}%
+  \fi
+  \ifvoid\@cclv\else\@makecol\@outputpage\fi}
+
+\output{\my@tcb@output}
 
 \makeatother
 
