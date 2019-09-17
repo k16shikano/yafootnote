@@ -66,14 +66,45 @@
 
 \def\my@tcb@output{%
   \ifdim\my@tcb@ftn@height>\z@
+    % 
+    \ifnum\outputpenalty>\z@
+      \my@tcb@ftn@height\ht\footins
+      \advance\my@tcb@ftn@height\footskip
+    \fi
+%    \expandafter\showthe\my@tcb@ftn@height
     \@tempdima\vsize
     \advance\@tempdima-\my@tcb@ftn@height
     \setbox\z@\vsplit\@cclv to \@tempdima%
-    \ifvoid\@cclv\else\setbox\tw@ =\vbox{\copy\@cclv}\unvbox\tw@\fi%
+    \setbox\tw@ =\vbox{\copy\@cclv}\unvbox\tw@%
     \global\my@tcb@ftn@height\z@
     \setbox\@cclv=\vbox{\copy\z@}%
   \fi
-  \ifvoid\@cclv\else\@makecol\@outputpage\fi}
+  \let \par \@@par
+  \ifnum \outputpenalty<-\@M
+    \@specialoutput
+  \else
+    \@makecol
+    \@opcol
+    \@startcolumn
+    \@whilesw \if@fcolmade \fi
+      {%
+       \@opcol\@startcolumn}%
+  \fi
+  \ifnum \outputpenalty>-\@Miv
+  \ifdim \@colroom<1.5\baselineskip
+      \ifdim \@colroom<\textheight
+        \@latex@warning@no@line {Text page \thepage\space
+                               contains only floats}%
+        \@emptycol
+      \else
+        \global \vsize \@colroom
+      \fi
+    \else
+      \global \vsize \@colroom
+    \fi
+  \else
+    \global \vsize \maxdimen
+  \fi}
 
 \output{\my@tcb@output}
 
