@@ -115,7 +115,7 @@ function page_ftn_height(groupcode)
       ftn_ht = get_ftnheight(tex.lists.contrib_head)
       if ftn_ht > 0
       then
-         local new_ftn_ht = ftn_ht + tex.getdimen("footskip")
+         local new_ftn_ht = ftn_ht
 
          file = io.open(tex.jobname..".fht", "r")
          io.input(file)
