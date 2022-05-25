@@ -62,7 +62,6 @@ end
 
 move_footnote_bottom = function (page_head, group, s)
    local yaftnins = node.new("vlist")
-   yaftnins.list = node.copy(tex.box.footins)
 
    local n_head = node.copy_list(page_head)
    recur = function (n)
