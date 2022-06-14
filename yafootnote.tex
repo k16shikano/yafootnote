@@ -77,7 +77,7 @@
     \setbox\z@\vsplit\@cclv to \@tempdima%
     \setbox\tw@ =\vbox{\copy\@cclv}\unvbox\tw@%
     \global\my@tcb@ftn@height\z@
-    \setbox\@cclv=\vbox{\copy\z@}%
+    \global\setbox\@cclv=\vbox{\copy\z@}%
   \fi
   \let \par \@@par
   \ifnum \outputpenalty<-\@M
