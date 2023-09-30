@@ -168,7 +168,6 @@ get_ftnheight = function (n)
          node.unset_attribute(list, 300)
       elseif node.has_attribute(list, 200)
       then
-         ftnheight = ftnheight + list.height + list.depth
       elseif list.head
       then
          ftnheight = ftnheight + get_ftnheight (list.head)
