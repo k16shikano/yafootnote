@@ -49,19 +49,18 @@ crush_height_of_vlist = function (head, group, size)
    for list in node.traverse(head) do
       if list.id == node.id("hlist")
       then
-      for item in node.traverse(list) do
-         local f = node.has_attribute(item, 200)
-         if f
-         then
-            if not node.has_attribute(item, 300)
+         for item in node.traverse(list) do
+            local f = node.has_attribute(item, 200)
+            if f
             then
-               node.set_attribute(item, 300, item.height+item.depth)
-               item.height = 0
-               item.depth = 0
-            else
+               if not node.has_attribute(item, 300)
+               then
+                  node.set_attribute(item, 300, item.height+item.depth)
+                  item.height = 0
+                  item.depth = 0
+               end
             end
          end
-      end
       end
    end
    
@@ -78,12 +77,19 @@ move_footnote_bottom = function (page_head, group, s)
          if footnotebox
          then
             footnote = node.copy(tex.box[footnotebox])
-            n_head = node.remove(n_head, list)
+            for ftnitem in node.traverse(footnote.head) do
+               if node.has_attribute(ftnitem, 200)
+               then 
+                  footnote.head = node.remove(footnote.head, ftnitem)
+               end
+            end
             if yaftnins
             then
                yaftnins.list, new = node.insert_after(
                   yaftnins.list, yaftnins.tail, footnote)
             end
+            n_head = node.remove(n_head, list)
+            n_head = recur(list.head)
          elseif list.head
          then
             n_head = recur(list.head)
@@ -117,14 +123,14 @@ function page_ftn_height(groupcode)
             end
          end
       end
-   elseif groupcode == "vmode_par" or groupcode == "hmode_par"
+   elseif groupcode == "vmode_par" or groupcode == "hmode_par" or groupcode == "insert"
    then
       ftn_ht = get_ftnheight(tex.lists.contrib_head)
       if ftn_ht > 0
       then
          local new_ftn_ht = ftn_ht
 
-         file = io.open(tex.jobname..".fht", "r")
+         local file = io.open(tex.jobname..".fht", "r")
          io.input(file)
          curr_page_ftn_arr = {}
          for line in file:lines() do
@@ -143,7 +149,7 @@ function page_ftn_height(groupcode)
          table.insert(curr_page_ftn_arr, pagenumber.." "..new_ftn_ht)
          local table_string = table.concat(curr_page_ftn_arr, "\n")
 
-         file = io.open(tex.jobname..".fht", "w")
+         local file = io.open(tex.jobname..".fht", "w")
          io.output(file)
          io.write(table_string)
          io.close(file)
@@ -153,14 +159,16 @@ end
 
 get_ftnheight = function (n)
    local ftnheight = 0
+
    for list in node.traverse(n) do
       if node.has_attribute(list, 300)
       then
          ftnheight = ftnheight + node.get_attribute(list, 300)
+         ftnheight = ftnheight + get_ftnheight(list.head)
          node.unset_attribute(list, 300)
       elseif node.has_attribute(list, 200)
       then
---         ftnheight = ftnheight + list.height + list.depth
+         ftnheight = ftnheight + list.height + list.depth
       elseif list.head
       then
          ftnheight = ftnheight + get_ftnheight (list.head)

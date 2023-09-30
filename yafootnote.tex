@@ -21,23 +21,37 @@
 \newdimen\paryafootnoteskip
 \paryafootnoteskip=.1\baselineskip
 
-\def\yafootnote#1{%
+\def\yafootnote#1{\nobreak%
   \global\advance\yafootnotecount 1
   \global\expandafter\newbox
     \csname yafoot_\the\yafootnotecount\endcsname
-  \global\expandafter\setbox
-    \csname yafoot_\the\yafootnotecount\endcsname
-    \vtop{\hsize\footnotewidth\par\hbox{\vrule width0pt height4pt}
-      \footnotesize\noindent *\the\yafootnotecount\, #1}%
-  \bgroup
-    \attribute100=\expandafter\the
-      \csname yafoot_\the\yafootnotecount\endcsname
+  \begingroup
+    \attribute100=\expandafter\the\csname yafoot_\the\yafootnotecount\endcsname
     \expandafter\yafootnotemark\expandafter{\the\yafootnotecount}
     \vadjust {\pdfliteral{}}%
-  \egroup
+  \endgroup
+  \global\expandafter\setbox
+    \csname yafoot_\the\yafootnotecount\endcsname
+    \vtop{\yafootnotetext{#1}}%
 }
 
-\def\yafootnotemark#1{\small *\ensuremath{^{\mbox{#1}}}}
+\def\@thefnmark{\the\yafootnotecount}
+\def\yafootnotetext{%
+    \normalfont\footnotesize
+    \interlinepenalty\interfootnotelinepenalty
+    \hsize\footnotewidth \@parboxrestore
+    \protected@edef\@currentlabel{%
+       \csname p@footnote\endcsname\@thefnmark
+    }%
+    \@makefntext{%
+      \rule\z@\footnotesep\ignorespaces\leavevmode\inhibitglue}}
+\renewcommand\@makefntext[1]{%
+  \advance\leftskip 3\zw
+  \parindent 1\zw
+  \noindent
+  \llap{\yafootnotemark{\the\yafootnotecount}\hskip0.3\zw}#1}
+\def\yafootnotemark#1{\scriptsize\ensuremath{^{\mbox{\thefootnote #1}}}\nobreak}
+\def\thefootnote{\leavevmode\raise.2ex\hbox{\scriptsize$\dagger$}}
 
 \directlua{dofile("./yafoot.lua")}
 
