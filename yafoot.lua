@@ -1,30 +1,38 @@
 pagenumber = 0
-
 local file = io.open(tex.jobname..".fht", "r")
-io.input(file)
-local pages_ftn_ht = {}
-local has_pages_ftn_ht = false
-for line in file:lines() do
-   local line_arr = {}
-   for i in string.gmatch(line, "%S+") do
-      table.insert(line_arr, tonumber(i))
+
+if file == nil
+then 
+   has_pages_ftn_ht = false
+else
+   io.input(file)
+   pages_ftn_ht = {}
+   has_pages_ftn_ht = false
+   for line in file:lines() do
+      local line_arr = {}
+      for i in string.gmatch(line, "%S+") do
+         table.insert(line_arr, tonumber(i))
+      end
+      table.insert(pages_ftn_ht, line_arr)
+      has_pages_ftn_ht = true
    end
-   table.insert(pages_ftn_ht, line_arr)
-   has_pages_ftn_ht = true
+   io.close(file)
 end
-io.close(file)
 local file = io.open(tex.jobname..".fht", "w")
 io.close(file)
 
-if pages_ftn_ht[1] and pages_ftn_ht[1][1] == 0
-then
-   tex.setdimen("global", "my@tcb@ftn@height", pages_ftn_ht[1][2])
+if has_pages_ftn_ht
+   then
+   if pages_ftn_ht[1] and pages_ftn_ht[1][1] == 0
+   then
+      tex.setdimen("global", "my@tcb@ftn@height", pages_ftn_ht[1][2])
+   end
 end
 
 push_footnotes_below_lines = function (head, group)
    for item in node.traverse_id(node.id("whatsit"), head) do
       local is_footnote = node.has_attribute(item, 100)
-      if is_footnote
+      if is_footnote and is_footnote > 0
       then
          local footnote = node.copy(tex.box[is_footnote])
          head, new = node.insert_after(head, item, footnote)
