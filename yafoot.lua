@@ -46,19 +46,16 @@ end
 
 -- crush vlist under hlist
 crush_height_of_vlist = function (head, group, size)
-   for list in node.traverse(head) do
-      if list.id == node.id("hlist")
-      then
-         for item in node.traverse(list) do
-            local f = node.has_attribute(item, 200)
-            if f
+   for list in node.traverse_id(node.id("hlist"), head) do
+      for item in node.traverse(list) do
+         local f = node.has_attribute(item, 200)
+         if f
+         then
+            if not node.has_attribute(item, 300)
             then
-               if not node.has_attribute(item, 300)
-               then
-                  node.set_attribute(item, 300, item.height+item.depth)
-                  item.height = 0
-                  item.depth = 0
-               end
+               node.set_attribute(item, 300, item.height+item.depth)
+               item.height = 0
+               item.depth = 0
             end
          end
       end
